@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My First Chat Test</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+
+<body style="font-family: Arial; padding: 20px;">
+
+    <h2>Teste de Chat Real-Time</h2>
+
+    <input type="text" id="username" placeholder="Seu Nome">
+    <input type="text" id="room" placeholder="ID da Sala (ex: 123)">
+    <button onclick="joinRoom()">Entrar na Sala</button>
+
+    <hr>
+
+    <div id="chat-box"
+        style="height: 300px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; margin-bottom: 10px;"></div>
+
+    <input type="text" id="message" placeholder="Mensagem...">
+    <button onclick="sendMessage()">Enviar &#10148;</button>
+
+    <script>
+        const socket = io.connect("http://localhost:3001");
+
+        function joinRoom() {
+            const username = document.getElementById("username").value;
+            const room = document.getElementById("room").value;
+            if (username && room) {
+                socket.emit("join_room", { username, room });
+                alert("Você entrou na sala " + room);
+            }
+        }
+
+        function sendMessage() {
+            const message = document.getElementById("message").value;
+            const username = document.getElementById("username").value;
+            const room = document.getElementById("room").value;
+
+            if (message && room) {
+                const messageData = {
+                    room: room,
+                    username: username,
+                    message: message,
+                    time: new Date().toLocaleTimeString()
+                };
+
+                socket.emit("send_message", messageData);
+                document.getElementById("message").value = "";
+            }
+        }
+
+        socket.on("receive_message", (data) => {
+            const chatBox = document.getElementById("chat-box");
+            const newMessage = document.createElement("p");
+            newMessage.innerHTML = `<strong>${data.username}</strong> [${data.time}]: ${data.message}`;
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+
+</html>
